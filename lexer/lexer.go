@@ -15,12 +15,16 @@ const (
 	LBRACE
 	RBRACE
 	SEMICOLON
+	COMMA
 	EOF
 )
 var keywords = map[string]TokenType{
     "let": KEYWORD,
     "if":  KEYWORD,
+	"else":KEYWORD,
     "for": KEYWORD,
+	"func":KEYWORD,
+	"return": KEYWORD,
 }
 
 type Token struct {
@@ -94,10 +98,24 @@ func (L *Lexer) NextToken() Token {
 			return Token{Type: OPERATOR ,Value:"=="}
 		}
 		typ=ASSIGN
+	case '>':
+    	if L.Input[L.NextPos] == '=' {
+    	    L.advance()
+    	    return Token{Type: OPERATOR, Value: ">="}
+    	}
+    	return Token{Type: OPERATOR, Value: ">"}
+	case '<':
+		if L.Input[L.NextPos] == '=' {
+    	    L.advance()
+    	    return Token{Type: OPERATOR, Value: "<="}
+    	}
+    	return Token{Type: OPERATOR, Value: "<"}
 	case '+', '-','*','/':
 		typ=OPERATOR
 	case ';':
 		typ=SEMICOLON
+	case ',':
+    	typ = COMMA
 	case 0:
 		typ=EOF
 	default:

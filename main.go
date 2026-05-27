@@ -1,20 +1,40 @@
 package main
 
 import (
+	// "fmt"
+	"bufio"
 	"fmt"
 	"goscript/ast"
 	"goscript/parser"
+	"os"
 )
 
 func main() {
-	p := parser.NewParser("let x = 10; let y = x + 5;")
-	env := &ast.Evaluator{Store: map[string]int{}}
-	stmt1 := p.ParseLetStatement()
-	stmt1.Evaluate(env)
-	stmt2 := p.ParseLetStatement()
-	stmt2.Evaluate(env)
-	x,_:=env.Get("x")
-	y,_:=env.Get("y")
-	fmt.Println("x =", x)
-	fmt.Println("y =", y)
+	if len(os.Args) > 1 {
+		fileName := os.Args[1]
+		byteContent, _ := os.ReadFile(fileName)
+		stringCon := string(byteContent)
+		p := parser.NewParser(stringCon)
+		env := ast.NewEvaluator()
+		nodes := p.Parse()
+		for _, node := range nodes {
+			node.Evaluate(env)
+		}
+	} else {
+		scanner := bufio.NewScanner(os.Stdin)
+		env := ast.NewEvaluator()
+		for {
+			fmt.Print("> ")
+			scanner.Scan()
+			line := scanner.Text()
+			if line == "exit" {
+				break
+			}
+			P := parser.NewParser(line)
+			nodes := P.Parse()
+			for _, node := range nodes {
+				node.Evaluate(env)
+			}
+		}
+	}
 }
