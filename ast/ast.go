@@ -67,16 +67,19 @@ func (F *FunctionCallNode) Evaluate(env *Evaluator) (any, bool) {
 	fn, exists := env.Functions[F.Name]
 	if !exists {
 		if F.Name == "print" {
+			if len(F.Args) == 0 {
+				panic("print() requires at least one argument")
+			}
 			val, _ := F.Args[0].Evaluate(env)
 			fmt.Println(val)
 			return 0, false
 		}
-		return 0, false
+		panic(fmt.Sprintf("undefined function '%s'", F.Name))
 	}
 	temEnv := NewEvaluator()
 	for i, param := range fn.Params {
-		val, _ := F.Args[i].Evaluate(env) // evaluate arg in OUTER env
-		temEnv.Set(param, val)            // store in LOCAL env
+		val, _ := F.Args[i].Evaluate(env)
+		temEnv.Set(param, val)
 	}
 	var result any = 0
 	var isReturn bool

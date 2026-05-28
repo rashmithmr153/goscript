@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"bufio"
 	"fmt"
 	"goscript/ast"
@@ -9,21 +8,37 @@ import (
 	"os"
 )
 
+func safeRun(nodes []ast.Node, env *ast.Evaluator) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("runtime error: %v", r)
+		}
+	}()
+	for _, node := range nodes {
+		_, isReturn := node.Evaluate(env)
+		if isReturn {
+			break
+		}
+	}
+	return nil
+}
+
 func main() {
 	if len(os.Args) > 1 {
+		// file mode
 		fileName := os.Args[1]
 		byteContent, _ := os.ReadFile(fileName)
-		stringCon := string(byteContent)
-		p := parser.NewParser(stringCon)
+		p := parser.NewParser(string(byteContent))
 		env := ast.NewEvaluator()
 		nodes := p.Parse()
-		for _, node := range nodes {
-			node.Evaluate(env)
+		if err := safeRun(nodes, env); err != nil {
+			fmt.Println(err)
 		}
 	} else {
+		// REPL mode
 		scanner := bufio.NewScanner(os.Stdin)
-		err:=scanner.Err()
-		if err!=nil{
+		if err:=scanner.Err();err!=nil{
+			fmt.Println("error in scanner: ",err)
 			return
 		}
 		env := ast.NewEvaluator()
@@ -34,10 +49,10 @@ func main() {
 			if line == "exit" {
 				break
 			}
-			P := parser.NewParser(line)
-			nodes := P.Parse()
-			for _, node := range nodes {
-				node.Evaluate(env)
+			p := parser.NewParser(line)
+			nodes := p.Parse()
+			if err := safeRun(nodes, env); err != nil {
+				fmt.Println(err)
 			}
 		}
 	}

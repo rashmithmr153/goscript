@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"goscript/ast"
 	"goscript/lexer"
 	"strconv"
@@ -88,6 +89,12 @@ func (P *Parser) ParseFactor() ast.Node {
 		P.advance()
 		return strNode
 	}
+	if P.curToken.Type == lexer.KEYWORD &&
+		(P.curToken.Value == "true" || P.curToken.Value == "false") {
+		val := P.curToken.Value == "true"
+		P.advance()
+		return &ast.BoolNode{Value: val}
+	}
 	if P.curToken.Type == lexer.IDENTIFIER {
 		name := P.curToken.Value
 		P.advance()
@@ -102,7 +109,7 @@ func (P *Parser) ParseFactor() ast.Node {
 		P.advance()
 		return result
 	}
-	return nil
+	panic(fmt.Sprintf("unexpected token '%s'", P.curToken.Value))
 }
 func (P *Parser) ParseFuncDef() *ast.FunctionDefNode {
 	P.advance() // skip "func"

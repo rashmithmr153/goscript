@@ -25,6 +25,8 @@ var keywords = map[string]TokenType{
 	"else":   KEYWORD,
 	"for":    KEYWORD,
 	"func":   KEYWORD,
+	"true":   KEYWORD,
+	"false":  KEYWORD,
 	"return": KEYWORD,
 }
 
