@@ -18,12 +18,13 @@ const (
 	COMMA
 	EOF
 )
+
 var keywords = map[string]TokenType{
-    "let": KEYWORD,
-    "if":  KEYWORD,
-	"else":KEYWORD,
-    "for": KEYWORD,
-	"func":KEYWORD,
+	"let":    KEYWORD,
+	"if":     KEYWORD,
+	"else":   KEYWORD,
+	"for":    KEYWORD,
+	"func":   KEYWORD,
 	"return": KEYWORD,
 }
 
@@ -54,85 +55,99 @@ func (L *Lexer) advance() byte {
 	return L.Input[L.CurPos]
 }
 func isLetter(ch byte) bool {
-    return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z'
+	return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z'
 }
 
-func isDigit(ch byte) bool{
-	return ch>='0' && ch <='9'
+func isDigit(ch byte) bool {
+	return ch >= '0' && ch <= '9'
 }
 
 func (L *Lexer) readIdentifier() string {
-    start := L.CurPos
-    for L.NextPos < len(L.Input) && isLetter(L.Input[L.NextPos]) {
-        L.advance()
-    }
-    return L.Input[start:L.NextPos]
+	start := L.CurPos
+	for L.NextPos < len(L.Input) && isLetter(L.Input[L.NextPos]) {
+		L.advance()
+	}
+	return L.Input[start:L.NextPos]
 }
 
-func (L *Lexer) readNumber() string{
+func (L *Lexer) readString() string {
+	L.advance()
 	start := L.CurPos
-    for L.NextPos < len(L.Input) && isDigit(L.Input[L.NextPos]) {
-        L.advance()
-    }
-    return L.Input[start:L.NextPos]
+	for L.NextPos < len(L.Input) && L.Input[L.NextPos] != '"' {
+		L.advance()
+	}
+	str := L.Input[start:L.NextPos]
+	L.advance()
+	return str
+}
+
+func (L *Lexer) readNumber() string {
+	start := L.CurPos
+	for L.NextPos < len(L.Input) && isDigit(L.Input[L.NextPos]) {
+		L.advance()
+	}
+	return L.Input[start:L.NextPos]
 }
 
 func (L *Lexer) NextToken() Token {
 	for L.NextPos < len(L.Input) && L.Input[L.NextPos] == ' ' {
-    L.advance()
+		L.advance()
 	}
-	ch:=L.advance()
+	ch := L.advance()
 	var typ TokenType
 	switch ch {
 	case '(':
-		typ=LPAREN
+		typ = LPAREN
 	case ')':
-		typ=RPAREN
+		typ = RPAREN
 	case '{':
-		typ=LBRACE
+		typ = LBRACE
 	case '}':
-		typ=RBRACE
+		typ = RBRACE
 	case '=':
-		if L.Input[L.NextPos]=='='{
+		if L.Input[L.NextPos] == '=' {
 			L.advance()
-			return Token{Type: OPERATOR ,Value:"=="}
+			return Token{Type: OPERATOR, Value: "=="}
 		}
-		typ=ASSIGN
+		typ = ASSIGN
 	case '>':
-    	if L.Input[L.NextPos] == '=' {
-    	    L.advance()
-    	    return Token{Type: OPERATOR, Value: ">="}
-    	}
-    	return Token{Type: OPERATOR, Value: ">"}
+		if L.Input[L.NextPos] == '=' {
+			L.advance()
+			return Token{Type: OPERATOR, Value: ">="}
+		}
+		return Token{Type: OPERATOR, Value: ">"}
 	case '<':
 		if L.Input[L.NextPos] == '=' {
-    	    L.advance()
-    	    return Token{Type: OPERATOR, Value: "<="}
-    	}
-    	return Token{Type: OPERATOR, Value: "<"}
-	case '+', '-','*','/':
-		typ=OPERATOR
+			L.advance()
+			return Token{Type: OPERATOR, Value: "<="}
+		}
+		return Token{Type: OPERATOR, Value: "<"}
+	case '+', '-', '*', '/':
+		typ = OPERATOR
 	case ';':
-		typ=SEMICOLON
+		typ = SEMICOLON
 	case ',':
-    	typ = COMMA
+		typ = COMMA
+	case '"':
+		str := L.readString()
+		return Token{Type: STRING, Value: str}
 	case 0:
-		typ=EOF
+		typ = EOF
 	default:
-	    if ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' {
-        	word := L.readIdentifier()
-			if val,exists:=keywords[word];exists{
-				return Token{Type: val,Value:word}
+		if ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' {
+			word := L.readIdentifier()
+			if val, exists := keywords[word]; exists {
+				return Token{Type: val, Value: word}
 			}
-        	return Token{Type: IDENTIFIER, Value: word}
-    	}
-		if ch >='0' && ch<='9'{
-			num:=L.readNumber()
+			return Token{Type: IDENTIFIER, Value: word}
+		}
+		if ch >= '0' && ch <= '9' {
+			num := L.readNumber()
 			return Token{Type: INT, Value: num}
 		}
 	}
 	return Token{
-		Type: typ,
+		Type:  typ,
 		Value: string(ch),
 	}
 }

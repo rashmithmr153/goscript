@@ -3,7 +3,27 @@ package ast
 import "fmt"
 
 type Node interface {
-	Evaluate(env *Evaluator) (int, bool)
+	Evaluate(env *Evaluator) (any, bool)
+}
+
+func toInt(v any) int {
+	if i, ok := v.(int); ok {
+		return i
+	}
+	return 0
+}
+
+func toBool(v any) bool {
+	switch val := v.(type) {
+	case bool:
+		return val
+	case int:
+		return val != 0
+	case string:
+		return val != ""
+	default:
+		return false
+	}
 }
 
 type NumberNode struct {
@@ -19,7 +39,7 @@ type ReturnStatement struct {
 	Value Node
 }
 
-func (r *ReturnStatement) Evaluate(env *Evaluator) (int, bool) {
+func (r *ReturnStatement) Evaluate(env *Evaluator) (any, bool) {
 	val, _ := r.Value.Evaluate(env)
 	return val, true
 }
@@ -30,7 +50,7 @@ type FunctionDefNode struct {
 	Body   []Node
 }
 
-func (f *FunctionDefNode) Evaluate(env *Evaluator) (int, bool) {
+func (f *FunctionDefNode) Evaluate(env *Evaluator) (any, bool) {
 	env.Functions[f.Name] = &FunctionDef{
 		Params: f.Params,
 		Body:   f.Body,
@@ -43,7 +63,7 @@ type FunctionCallNode struct {
 	Args []Node
 }
 
-func (F *FunctionCallNode) Evaluate(env *Evaluator) (int, bool) {
+func (F *FunctionCallNode) Evaluate(env *Evaluator) (any, bool) {
 	fn, exists := env.Functions[F.Name]
 	if !exists {
 		if F.Name == "print" {
@@ -58,7 +78,7 @@ func (F *FunctionCallNode) Evaluate(env *Evaluator) (int, bool) {
 		val, _ := F.Args[i].Evaluate(env) // evaluate arg in OUTER env
 		temEnv.Set(param, val)            // store in LOCAL env
 	}
-	result := 0
+	var result any = 0
 	var isReturn bool
 	for _, node := range fn.Body {
 		result, isReturn = node.Evaluate(temEnv)
@@ -75,10 +95,10 @@ type IfStatement struct {
 	Alt         []Node
 }
 
-func (If *IfStatement) Evaluate(env *Evaluator) (int, bool) {
+func (If *IfStatement) Evaluate(env *Evaluator) (any, bool) {
 	condnRes, isReturn := If.Condition.Evaluate(env)
-	result := 0
-	if condnRes != 0 {
+	var result any
+	if toBool(condnRes) {
 		for _, node := range If.Consequence {
 			result, isReturn = node.Evaluate(env)
 			if isReturn {
@@ -101,10 +121,10 @@ type Forstatement struct {
 	Consequence []Node
 }
 
-func (Fr *Forstatement) Evaluate(env *Evaluator) (int, bool) {
+func (Fr *Forstatement) Evaluate(env *Evaluator) (any, bool) {
 	condRes, isReturn := Fr.Condition.Evaluate(env)
-	result := 0
-	for condRes != 0 {
+	var result any = 0
+	for toBool(condRes) {
 		for _, node := range Fr.Consequence {
 			result, isReturn = node.Evaluate(env)
 			if isReturn {
@@ -120,7 +140,7 @@ type IdentifierNode struct {
 	Name string
 }
 
-func (Id *IdentifierNode) Evaluate(env *Evaluator) (int, bool) {
+func (Id *IdentifierNode) Evaluate(env *Evaluator) (any, bool) {
 	if val, exist := env.Get(Id.Name); exist {
 		return val, false
 	}
@@ -132,20 +152,38 @@ type LetStatement struct {
 	Value Node
 }
 
-func (ls *LetStatement) Evaluate(env *Evaluator) (int, bool) {
+func (ls *LetStatement) Evaluate(env *Evaluator) (any, bool) {
 	val, _ := ls.Value.Evaluate(env)
 	env.Set(ls.Name, val)
 	return val, false
 }
 
-func (Nd *NumberNode) Evaluate(env *Evaluator) (int, bool) {
+type StringNode struct {
+	Value string
+}
+
+func (s *StringNode) Evaluate(env *Evaluator) (any, bool) {
+	return s.Value, false
+}
+
+type BoolNode struct {
+	Value bool
+}
+
+func (b *BoolNode) Evaluate(env *Evaluator) (any, bool) {
+	return b.Value, false
+}
+
+func (Nd *NumberNode) Evaluate(env *Evaluator) (any, bool) {
 	return Nd.Value, false
 }
 
-func (Bd *BinaryNode) Evaluate(env *Evaluator) (int, bool) {
-	leftval, _ := Bd.Left.Evaluate(env)
+func (Bd *BinaryNode) Evaluate(env *Evaluator) (any, bool) {
+	lv, _ := Bd.Left.Evaluate(env)
+	rv, _ := Bd.Right.Evaluate(env)
+	leftval := toInt(lv)
+	RightVal := toInt(rv)
 	opertor := Bd.Op
-	RightVal, _ := Bd.Right.Evaluate(env)
 	result := 0
 	switch opertor {
 	case "+":

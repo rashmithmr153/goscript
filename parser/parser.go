@@ -83,6 +83,11 @@ func (P *Parser) ParseFactor() ast.Node {
 		P.advance()
 		return &numNode
 	}
+	if P.curToken.Type == lexer.STRING {
+		strNode := &ast.StringNode{Value: P.curToken.Value}
+		P.advance()
+		return strNode
+	}
 	if P.curToken.Type == lexer.IDENTIFIER {
 		name := P.curToken.Value
 		P.advance()

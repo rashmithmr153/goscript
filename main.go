@@ -22,6 +22,10 @@ func main() {
 		}
 	} else {
 		scanner := bufio.NewScanner(os.Stdin)
+		err:=scanner.Err()
+		if err!=nil{
+			return
+		}
 		env := ast.NewEvaluator()
 		for {
 			fmt.Print("> ")
