@@ -63,6 +63,9 @@ func isLetter(ch byte) bool {
 func isDigit(ch byte) bool {
 	return ch >= '0' && ch <= '9'
 }
+func isWhitespace(ch byte) bool {
+	return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r'
+}
 
 func (L *Lexer) readIdentifier() string {
 	start := L.CurPos
@@ -92,7 +95,7 @@ func (L *Lexer) readNumber() string {
 }
 
 func (L *Lexer) NextToken() Token {
-	for L.NextPos < len(L.Input) && L.Input[L.NextPos] == ' ' {
+	for L.NextPos < len(L.Input) && isWhitespace(L.Input[L.NextPos]) {
 		L.advance()
 	}
 	ch := L.advance()

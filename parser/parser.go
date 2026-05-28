@@ -35,7 +35,9 @@ func (P *Parser) ParseLetStatement() *ast.LetStatement {
 
 	P.advance() // move past "="
 	value := P.ParseComparison()
-	P.advance() // move past number
+	if P.curToken.Type == lexer.SEMICOLON {
+		P.advance()
+	}
 
 	return &ast.LetStatement{Name: name, Value: value}
 }
@@ -69,7 +71,9 @@ func (P *Parser) ParseForStatement() *ast.Forstatement {
 func (P *Parser) ParseReturnStatement() *ast.ReturnStatement {
 	P.advance() //advance "return"
 	val := P.ParseComparison()
-	P.advance()
+	if P.curToken.Type == lexer.SEMICOLON {
+		P.advance()
+	}
 	return &ast.ReturnStatement{
 		Value: val,
 	}
@@ -215,7 +219,15 @@ func (P *Parser) parseStatement() ast.Node {
 	if P.curToken.Type == lexer.IDENTIFIER && P.peekToken.Type == lexer.LPAREN {
 		name := P.curToken.Value
 		P.advance()
-		return P.ParseFuncCall(name)
+		node := P.ParseFuncCall(name)
+		if P.curToken.Type == lexer.SEMICOLON {
+			P.advance()
+		}
+		return node
+	}
+	if P.curToken.Type == lexer.SEMICOLON {
+		P.advance()
+		return nil
 	}
 	P.advance()
 	return nil

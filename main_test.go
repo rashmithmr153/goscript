@@ -42,6 +42,21 @@ func TestArithmeticInCondition(t *testing.T) {
 		t.Errorf("expected y=1, got %d", y)
 	}
 }
+func TestSubtraction(t *testing.T) {
+	env := runProgram("let x = 15 - 5;")
+	x, _ := env.Get("x")
+	if x != 10 {
+		t.Errorf("expected x=10, got %d", x)
+	}
+}
+
+func TestDivision(t *testing.T) {
+	env := runProgram("let x = 20 / 4;")
+	x, _ := env.Get("x")
+	if x != 5 {
+		t.Errorf("expected x=5, got %d", x)
+	}
+}
 
 func TestVariableReference(t *testing.T) {
 	env := runProgram("let x = 10; let z = x + 5; if z == 15 { let y = 99; }")
@@ -90,5 +105,59 @@ func TestFunction(t *testing.T) {
 	z, _ := env.Get("z")
 	if z != 15 {
 		t.Errorf("expected z=15, got %d", z)
+	}
+}
+func TestNestedFunctionCalls(t *testing.T) {
+	env := runProgram(`
+		func double(x) {
+			return x * 2;
+		}
+		func addAndDouble(a, b) {
+			return double(a + b);
+		}
+		let result = addAndDouble(3, 4);
+	`)
+	res, _ := env.Get("result")
+	if res != 14 {
+		t.Errorf("expected result=14, got %v", res)
+	}
+}
+
+func TestGlobalVariableAccess(t *testing.T) {
+	env := runProgram(`
+		let globalVal = 100;
+		func addGlobal(x) {
+			return x + globalVal;
+		}
+		let result = addGlobal(25);
+	`)
+	res, _ := env.Get("result")
+	if res != 125 {
+		t.Errorf("expected result=125, got %v", res)
+	}
+}
+func TestOptionalSemicolons(t *testing.T) {
+	env := runProgram(`
+		let x = 10
+		let y = 20
+		let z = x + y
+	`)
+	x, _ := env.Get("x")
+	y, _ := env.Get("y")
+	z, _ := env.Get("z")
+	if x != 10 || y != 20 || z != 30 {
+		t.Errorf("expected x=10, y=20, z=30; got x=%v, y=%v, z=%v", x, y, z)
+	}
+}
+
+func TestMultiLineExpressions(t *testing.T) {
+	env := runProgram(`
+		let x = 10 +
+			20 -
+			5;
+	`)
+	x, _ := env.Get("x")
+	if x != 25 {
+		t.Errorf("expected x=25, got %v", x)
 	}
 }

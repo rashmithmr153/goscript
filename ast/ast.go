@@ -64,7 +64,7 @@ type FunctionCallNode struct {
 }
 
 func (F *FunctionCallNode) Evaluate(env *Evaluator) (any, bool) {
-	fn, exists := env.Functions[F.Name]
+	fn, exists := env.LookupFunction(F.Name)
 	if !exists {
 		if F.Name == "print" {
 			if len(F.Args) == 0 {
@@ -76,7 +76,7 @@ func (F *FunctionCallNode) Evaluate(env *Evaluator) (any, bool) {
 		}
 		panic(fmt.Sprintf("undefined function '%s'", F.Name))
 	}
-	temEnv := NewEvaluator()
+	temEnv := NewEnclosedEvaluator(env)
 	for i, param := range fn.Params {
 		val, _ := F.Args[i].Evaluate(env)
 		temEnv.Set(param, val)
@@ -191,6 +191,13 @@ func (Bd *BinaryNode) Evaluate(env *Evaluator) (any, bool) {
 	switch opertor {
 	case "+":
 		result = leftval + RightVal
+	case "-":
+		result = leftval - RightVal
+	case "/":
+		if RightVal == 0 {
+			panic("division by zero")
+		}
+		result = leftval / RightVal
 	case "*":
 		result = leftval * RightVal
 	case "==":
