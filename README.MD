@@ -1,10 +1,16 @@
 # goscript
 
 goscript is a dynamically-typed scripting language built from scratch in Go, featuring variables, functions, loops, conditionals, lexical scoping, and an interactive REPL.
+## Requirements
+
+- Go 1.21 or higher
+
+Install Go from https://go.dev/dl/
 
 ## Installation
+```
+Requires Go 1.21 or higher.
 
-```bash
 git clone https://github.com/rashmithmr153/goscript.git
 cd goscript
 go install .
