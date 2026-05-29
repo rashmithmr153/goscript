@@ -124,13 +124,38 @@ func fib(n) {
 print(fib(10));
 ```
 
+### Arrays
+
+Arrays are declared with square brackets and support index access.
+
+```
+let arr = [1, 2, 3];
+print(arr[0]);
+print(arr[2]);
+```
+Arrays can hold any type:
+
+```
+let mixed = [1, "hello", true];
+print(mixed[1]);
+```
+
+Out of bounds access gives a descriptive error:
+
+```
+let arr = [1, 2, 3];
+print(arr[5]);
+runtime error: index 5 out of bounds
+
+```
 ### Types
 
-| Type    | Example          |
-|---------|------------------|
-| int     | `let x = 42;`    |
-| string  | `let s = "hi";`  |
-| bool    | `let b = true;`  |
+| Type    | Example               |
+|---------|-----------------------|
+| int     | `let x = 42;`         |
+| string  | `let s = "hi";`       |
+| bool    | `let b = true;`       |
+| array   | `let a = [1, 2, 3];`  |
 
 ### Built-in Functions
 

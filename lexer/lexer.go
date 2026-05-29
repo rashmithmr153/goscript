@@ -12,6 +12,8 @@ const (
 	OPERATOR
 	LPAREN
 	RPAREN
+	LBRACKET
+	RBRACKET
 	LBRACE
 	RBRACE
 	SEMICOLON
@@ -136,6 +138,10 @@ func (L *Lexer) NextToken() Token {
 	case '"':
 		str := L.readString()
 		return Token{Type: STRING, Value: str}
+	case '[':
+		typ=LBRACKET
+	case']':
+		typ=RBRACKET
 	case 0:
 		typ = EOF
 	default:

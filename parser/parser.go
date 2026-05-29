@@ -105,7 +105,14 @@ func (P *Parser) ParseFactor() ast.Node {
 		if P.curToken.Type == lexer.LPAREN {
 			return P.ParseFuncCall(name)
 		}
-		return &ast.IdentifierNode{Name: name}
+		base := &ast.IdentifierNode{Name: name}
+		if P.curToken.Type == lexer.LBRACKET {
+			P.advance()
+			index := P.ParseComparison()
+			P.advance() // skip ]
+			return &ast.IndexNode{Array: base, Index: index}
+		}
+		return base
 	}
 	if P.curToken.Type == lexer.LPAREN {
 		P.advance()
@@ -113,10 +120,24 @@ func (P *Parser) ParseFactor() ast.Node {
 		P.advance()
 		return result
 	}
+	if P.curToken.Type == lexer.LBRACKET {
+		P.advance()
+		elements := []ast.Node{}
+		for P.curToken.Type != lexer.RBRACKET {
+			if P.curToken.Type != lexer.COMMA {
+				element := P.ParseComparison()
+				elements = append(elements, element)
+			} else {
+				P.advance() // skip comma
+			}
+		}
+		P.advance()
+		return &ast.ArrayNode{Elements: elements}
+	}
 	panic(fmt.Sprintf("unexpected token '%s'", P.curToken.Value))
 }
 func (P *Parser) ParseFuncDef() *ast.FunctionDefNode {
-	P.advance() // skip "func"
+	P.advance() // skip "func"element
 
 	name := P.curToken.Value // function name
 	P.advance()              // skip name

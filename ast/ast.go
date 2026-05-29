@@ -139,17 +139,6 @@ func (Fr *Forstatement) Evaluate(env *Evaluator) (any, bool) {
 	return result, false
 }
 
-type IdentifierNode struct {
-	Name string
-}
-
-func (Id *IdentifierNode) Evaluate(env *Evaluator) (any, bool) {
-	if val, exist := env.Get(Id.Name); exist {
-		return val, false
-	}
-	return 0, false
-}
-
 type LetStatement struct {
 	Name  string
 	Value Node
@@ -159,6 +148,42 @@ func (ls *LetStatement) Evaluate(env *Evaluator) (any, bool) {
 	val, _ := ls.Value.Evaluate(env)
 	env.Set(ls.Name, val)
 	return val, false
+}
+
+type IndexNode struct {
+	Array Node
+	Index Node
+}
+
+func (IN *IndexNode) Evaluate(env *Evaluator) (any, bool) {
+	arrRaw, _ := IN.Array.Evaluate(env)
+	idxRaw, _ := IN.Index.Evaluate(env)
+
+	arr, ok := arrRaw.([]any)
+	if !ok {
+		panic("cannot index a non-array value")
+	}
+
+	idx := toInt(idxRaw)
+	if idx < 0 || idx >= len(arr) {
+		panic(fmt.Sprintf("index %d out of bounds", idx))
+	}
+
+	return arr[idx], false
+}
+
+type ArrayNode struct {
+	Elements []Node
+}
+
+func (a *ArrayNode) Evaluate(env *Evaluator) (any, bool) {
+	var result []any
+
+	for _, node := range a.Elements {
+		res, _ := node.Evaluate(env)
+		result = append(result, res)
+	}
+	return result, false
 }
 
 type StringNode struct {
@@ -177,6 +202,16 @@ func (b *BoolNode) Evaluate(env *Evaluator) (any, bool) {
 	return b.Value, false
 }
 
+type IdentifierNode struct {
+	Name string
+}
+
+func (Id *IdentifierNode) Evaluate(env *Evaluator) (any, bool) {
+	if val, exist := env.Get(Id.Name); exist {
+		return val, false
+	}
+	return 0, false
+}
 func (Nd *NumberNode) Evaluate(env *Evaluator) (any, bool) {
 	return Nd.Value, false
 }
