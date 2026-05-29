@@ -56,8 +56,13 @@ func main() {
 		env := ast.NewEvaluator()
 		for {
 			fmt.Print("> ")
-			scanner.Scan()
+			if !scanner.Scan() {
+				break
+			}
 			line := scanner.Text()
+			if line == "" {
+				continue
+			}
 			if line == "exit" {
 				break
 			}

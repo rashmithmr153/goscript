@@ -7,7 +7,7 @@ goscript is a dynamically-typed scripting language built from scratch in Go, fea
 ```bash
 git clone https://github.com/rashmithmr153/goscript.git
 cd goscript
-go build .
+go install .
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ go build .
 Write your program in a `.gs` file and run it:
 
 ```bash
-go run . main.gs
+goscript FILE_NAME.gs
 ```
 
 ### REPL mode
@@ -25,7 +25,7 @@ go run . main.gs
 Start the interactive shell by running without arguments:
 
 ```bash
-go run .
+goscript 
 > let x = 10;
 > print(x);
 10
