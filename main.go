@@ -22,23 +22,35 @@ func safeRun(nodes []ast.Node, env *ast.Evaluator) (err error) {
 	}
 	return nil
 }
+func safeParse(input string) (nodes []ast.Node, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("parse error: %v", r)
+		}
+	}()
+	p := parser.NewParser(input)
+	nodes = p.Parse()
+	return nodes, nil
+}
 
 func main() {
 	if len(os.Args) > 1 {
-		// file mode
 		fileName := os.Args[1]
 		byteContent, _ := os.ReadFile(fileName)
-		p := parser.NewParser(string(byteContent))
+		nodes, err := safeParse(string(byteContent))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 		env := ast.NewEvaluator()
-		nodes := p.Parse()
 		if err := safeRun(nodes, env); err != nil {
 			fmt.Println(err)
 		}
 	} else {
 		// REPL mode
 		scanner := bufio.NewScanner(os.Stdin)
-		if err:=scanner.Err();err!=nil{
-			fmt.Println("error in scanner: ",err)
+		if err := scanner.Err(); err != nil {
+			fmt.Println("error in scanner: ", err)
 			return
 		}
 		env := ast.NewEvaluator()
@@ -49,8 +61,11 @@ func main() {
 			if line == "exit" {
 				break
 			}
-			p := parser.NewParser(line)
-			nodes := p.Parse()
+			nodes, err := safeParse(line)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
 			if err := safeRun(nodes, env); err != nil {
 				fmt.Println(err)
 			}
